@@ -99,10 +99,10 @@ keeps the decisions and the reasons for them, which issues are bad at holding.
 | | Milestone | Issue | Gated by |
 |---|---|---|---|
 | M0 | Skeleton: SvelteKit, mdsvex, one post, CI to Pages | [#1](../../issues/1) (done) | |
-| M1 | Content pipeline: validation, drafts, tags, reading time | [#2](../../issues/2) | #9, #15 |
+| M1 | Content pipeline: validation, drafts, tags, reading time | [#2](../../issues/2) | #7, #8, #9, #15 |
 | M2 | Feeds and metadata: RSS, sitemap, Open Graph, JSON-LD | [#3](../../issues/3) | #10 |
 | M3 | Design pass: type scale, spacing, dark/light audit | [#4](../../issues/4) | #11, #14 |
-| M4 | Performance and a11y: Lighthouse, keyboard, contrast | [#5](../../issues/5) | #12 |
+| M4 | Performance and a11y: Lighthouse, keyboard, contrast | [#5](../../issues/5) | #12, #13 |
 | M5 | Writing: three real posts | [#6](../../issues/6) | M1 |
 
 Order: M0, M1, M2, M3, M4, M5 — but M5 can start any time, and should. A blog
