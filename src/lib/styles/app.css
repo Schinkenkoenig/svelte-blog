@@ -1,67 +1,14 @@
-/* The whole design system: tokens, resets, typography, prose.
+/* Global styles: reset, base elements, layout helpers, prose.
  *
- * There is no CSS framework here. A blog is a page of text, a nav and a list;
- * the entire stylesheet fits in one file that can be read top to bottom, which
- * is worth more than a utility vocabulary.
+ * Design tokens live in tokens.css and are the only place a raw value appears.
+ * Nothing below picks a colour, a size or a spacing by hand -- if a value is
+ * needed that no token provides, the token is what is missing.
  *
- * Colour is defined once as tokens on :root and redefined for light mode.
- * Components never name a colour directly -- that is what keeps the two themes
- * from drifting apart. Dark is the default, with a blue-leaning neutral ramp:
- * the greys carry a little blue so the accent belongs to the same family
- * instead of sitting on top of it.
+ * Component styling lives in the components. This file covers what a component
+ * cannot scope: the document, and markdown output that carries no classes.
  */
 
-:root {
-	color-scheme: dark;
-
-	--bg: #0b0e14;
-	--bg-subtle: #11151f;
-	--bg-inset: #161b26;
-	--border: #202634;
-	--border-strong: #2c3447;
-
-	--text: #dde3ec;
-	--text-muted: #8c96a8;
-	--text-faint: #626d80;
-
-	--accent: #7aa2f7;
-	--accent-hover: #a3c0ff;
-	--accent-soft: rgba(122, 162, 247, 0.13);
-
-	--selection: rgba(122, 162, 247, 0.28);
-
-	--font-sans:
-		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial,
-		sans-serif;
-	--font-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
-
-	--measure: 68ch;
-	--page: 44rem;
-	--gutter: 1.5rem;
-
-	--radius: 8px;
-	--transition: 120ms ease;
-}
-
-:root[data-theme='light'] {
-	color-scheme: light;
-
-	--bg: #ffffff;
-	--bg-subtle: #f7f8fa;
-	--bg-inset: #f0f2f6;
-	--border: #e4e7ee;
-	--border-strong: #cdd3df;
-
-	--text: #10141c;
-	--text-muted: #59616f;
-	--text-faint: #7c8595;
-
-	--accent: #2f5ed8;
-	--accent-hover: #1e47b5;
-	--accent-soft: rgba(47, 94, 216, 0.09);
-
-	--selection: rgba(47, 94, 216, 0.18);
-}
+@import './tokens.css';
 
 *,
 *::before,
@@ -90,9 +37,9 @@ body {
 	margin: 0;
 	background: var(--bg);
 	color: var(--text);
-	font-family: var(--font-sans);
-	font-size: 1rem;
-	line-height: 1.65;
+	font-family: var(--family-sans);
+	font-size: var(--font-body);
+	line-height: var(--leading-normal);
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 }
@@ -114,15 +61,15 @@ a:hover {
 :focus-visible {
 	outline: 2px solid var(--accent);
 	outline-offset: 3px;
-	border-radius: 2px;
+	border-radius: var(--radius-sm);
 }
 
 h1,
 h2,
 h3,
 h4 {
-	line-height: 1.25;
-	font-weight: 650;
+	line-height: var(--leading-tight);
+	font-weight: var(--weight-semibold);
 	letter-spacing: -0.015em;
 	margin: 0;
 	text-wrap: balance;
@@ -138,7 +85,7 @@ svg {
 hr {
 	border: 0;
 	border-top: 1px solid var(--border);
-	margin: 2.5rem 0;
+	margin-block: var(--space-6);
 }
 
 /* --- Layout ------------------------------------------------------------- */
@@ -148,10 +95,6 @@ hr {
 	max-width: var(--page);
 	margin-inline: auto;
 	padding-inline: var(--gutter);
-}
-
-.stack > * + * {
-	margin-top: var(--stack-gap, 1rem);
 }
 
 /* --- Prose --------------------------------------------------------------
@@ -177,15 +120,15 @@ hr {
 }
 
 .prose h2 {
-	font-size: 1.35rem;
+	font-size: var(--font-heading);
 }
 
 .prose h3 {
-	font-size: 1.12rem;
+	font-size: var(--font-subheading);
 }
 
 .prose h4 {
-	font-size: 1rem;
+	font-size: var(--font-body);
 	color: var(--text-muted);
 }
 
@@ -195,7 +138,7 @@ hr {
 }
 
 .prose li + li {
-	margin-top: 0.35em;
+	margin-top: var(--space-1);
 }
 
 .prose blockquote {
@@ -206,35 +149,35 @@ hr {
 }
 
 .prose :not(pre) > code {
-	font-family: var(--font-mono);
+	font-family: var(--family-mono);
 	font-size: 0.875em;
 	padding: 0.15em 0.4em;
 	background: var(--bg-inset);
 	border: 1px solid var(--border);
-	border-radius: 5px;
+	border-radius: var(--radius-sm);
 	white-space: nowrap;
 }
 
 .prose table {
 	width: 100%;
 	border-collapse: collapse;
-	font-size: 0.925rem;
+	font-size: var(--font-ui);
 }
 
 .prose th,
 .prose td {
 	text-align: left;
-	padding: 0.5em 0.75em;
+	padding: var(--space-2) var(--space-3);
 	border-bottom: 1px solid var(--border);
 }
 
 .prose th {
 	color: var(--text-muted);
-	font-weight: 600;
+	font-weight: var(--weight-semibold);
 }
 
 .prose img {
-	border-radius: var(--radius);
+	border-radius: var(--radius-md);
 	border: 1px solid var(--border);
 }
 
@@ -251,12 +194,12 @@ hr {
 
 .code-block pre {
 	margin: 0;
-	padding: 1rem var(--gutter);
+	padding: var(--space-4) var(--gutter);
 	overflow-x: auto;
 	background: var(--bg-subtle) !important;
 	border-block: 1px solid var(--border);
-	font-family: var(--font-mono);
-	font-size: 0.85rem;
+	font-family: var(--family-mono);
+	font-size: var(--text-sm);
 	line-height: 1.6;
 	tab-size: 2;
 }
@@ -275,8 +218,8 @@ hr {
 	}
 
 	.code-block pre {
-		padding: 1rem 1.1rem;
+		padding: var(--space-4);
 		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		border-radius: var(--radius-md);
 	}
 }

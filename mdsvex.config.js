@@ -35,10 +35,20 @@ const LANGUAGES = [
 	'yaml'
 ];
 
-const highlighter = await createHighlighter({
-	themes: ['github-light', 'github-dark-default'],
-	langs: LANGUAGES
-});
+// Created on first use rather than on import. Loading two themes and every
+// grammar costs ~150ms, and a build or a dev-server start with no code block in
+// it should not pay that. The promise is cached, so the cost is paid once per
+// process at most.
+/** @type {Promise<import('shiki').Highlighter> | undefined} */
+let pending;
+
+function highlighter() {
+	pending ??= createHighlighter({
+		themes: ['github-light', 'github-dark-default'],
+		langs: LANGUAGES
+	});
+	return pending;
+}
 
 // Shiki's HTML lands inside a Svelte component, where `{`, `}` and backticks are
 // template syntax. They have to be neutralised or the compiler will try to read
@@ -56,11 +66,12 @@ function escape_svelte(html) {
 export default {
 	extensions: ['.md'],
 	highlight: {
-		highlighter(code, lang) {
+		async highlighter(code, lang) {
 			// An unlisted or absent language renders as plain text rather than
 			// failing the build: a fenced block with no language is legitimate.
 			const language = lang && LANGUAGES.includes(lang) ? lang : 'text';
-			const html = highlighter.codeToHtml(code, {
+			const shiki = await highlighter();
+			const html = shiki.codeToHtml(code, {
 				lang: language,
 				themes: { light: 'github-light', dark: 'github-dark-default' },
 				defaultColor: false

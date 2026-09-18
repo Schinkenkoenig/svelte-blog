@@ -7,12 +7,22 @@ A personal blog. Markdown in, static HTML out, GitHub Pages serving it.
 
 ## Running it
 
+Node and pnpm are pinned in `mise.toml`. With [mise](https://mise.jdx.dev)
+installed, `mise install` gets both.
+
 ```bash
-npm install
-npm run dev      # http://localhost:5173
-npm run build    # -> build/, exactly what gets deployed
-npm run preview  # serve build/
-npm run check    # types and Svelte diagnostics; must be clean
+pnpm install
+pnpm dev           # http://localhost:5173
+pnpm build         # -> build/, exactly what gets deployed
+pnpm preview       # serve build/
+
+pnpm test          # unit tests (vitest)
+pnpm test:watch
+pnpm check         # types and Svelte diagnostics; must be clean
+pnpm lint          # eslint, correctness rules only
+pnpm format        # prettier, owns formatting
+
+pnpm verify        # everything above, in CI's order. Run before pushing.
 ```
 
 ## Writing a post
@@ -43,11 +53,32 @@ Nothing is deployed by hand.
 ## Layout
 
 ```
-src/content/posts/   the posts
-src/lib/posts.ts     the post index, built at build time
-src/lib/config.ts    site title, description, nav, links
-src/lib/styles/      the whole design system, one file
-src/routes/          pages, plus rss.xml and sitemap.xml
-mdsvex.config.js     markdown -> component, and syntax highlighting
-vite.config.ts       SvelteKit, adapter, base path
+src/content/posts/      the posts
+src/lib/posts.ts        what a post is + every operation on a list of them (pure)
+src/lib/content.ts      binds those to the real .md files via import.meta.glob
+src/lib/feed.ts         RSS and sitemap generators (pure)
+src/lib/config.ts       site title, description, nav, links
+src/lib/styles/         tokens.css (the palette and scales) + app.css (the rest)
+src/routes/             pages, plus rss.xml and sitemap.xml
+mdsvex.config.js        markdown -> component, and syntax highlighting
+vite.config.ts          SvelteKit, adapter, base path, Lightning CSS
+vitest.config.ts        tests; deliberately does not load the SvelteKit plugin
 ```
+
+`posts.ts` is pure and `content.ts` holds the glob. That split is why the tests
+run in milliseconds — keep it.
+
+## Design tokens
+
+`src/lib/styles/tokens.css` is the only file where a raw colour or size appears,
+in two layers: primitives (`--blue-500`, `--space-4`) and semantic names
+(`--bg`, `--text-muted`, `--font-title`) that point at them. Components use
+semantic names only.
+
+- Recolour the site: repoint the semantic names.
+- Change the palette: edit the primitives, every semantic name follows.
+- Neither requires touching a component.
+
+Colours are authored in oklch with all neutrals at the accent's hue, so the
+greys and the accent are one family. Lightning CSS emits fallbacks per the
+`browserslist` field in `package.json`.

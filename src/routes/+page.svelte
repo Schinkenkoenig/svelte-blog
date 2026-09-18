@@ -1,8 +1,9 @@
 <!-- Home: a short introduction and the reverse-chronological post list. -->
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { site } from '$lib/config';
-	import { formatDate, listPosts } from '$lib/posts';
+	import { listPosts } from '$lib/content';
+	import { formatDate } from '$lib/posts';
 
 	const posts = listPosts();
 </script>
@@ -20,9 +21,11 @@
 <ul class="posts">
 	{#each posts as post (post.slug)}
 		<li>
-			<a href="{base}/posts/{post.slug}">
+			<a href={resolve('/posts/[slug]', { slug: post.slug })}>
 				<time datetime={post.date}>{formatDate(post.date, site.lang)}</time>
-				<h2>{post.title}{#if post.draft}<span class="draft">draft</span>{/if}</h2>
+				<h2>
+					{post.title}{#if post.draft}<span class="draft">draft</span>{/if}
+				</h2>
 				{#if post.description}<p>{post.description}</p>{/if}
 			</a>
 		</li>
@@ -33,12 +36,12 @@
 
 <style>
 	.intro {
-		margin-bottom: 3.5rem;
+		margin-bottom: var(--gap-section);
 	}
 
 	.intro h1 {
-		font-size: 1.75rem;
-		margin-bottom: 0.6rem;
+		font-size: var(--font-title);
+		margin-bottom: var(--space-3);
 	}
 
 	.intro p {
@@ -53,14 +56,14 @@
 		padding: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: var(--space-1);
 	}
 
 	.posts a {
 		display: block;
-		padding: 1rem;
-		margin-inline: -1rem;
-		border-radius: var(--radius);
+		padding: var(--space-4);
+		margin-inline: calc(-1 * var(--space-4));
+		border-radius: var(--radius-md);
 		color: inherit;
 		transition: background var(--transition);
 	}
@@ -71,15 +74,15 @@
 
 	time {
 		display: block;
-		font-size: 0.8rem;
+		font-size: var(--font-meta);
 		font-variant-numeric: tabular-nums;
 		color: var(--text-faint);
 		letter-spacing: 0.02em;
 	}
 
 	.posts h2 {
-		font-size: 1.075rem;
-		margin-top: 0.2rem;
+		font-size: var(--font-subheading);
+		margin-top: var(--space-1);
 	}
 
 	.posts a:hover h2 {
@@ -87,22 +90,22 @@
 	}
 
 	.posts p {
-		margin: 0.3rem 0 0;
+		margin: var(--space-1) 0 0;
 		color: var(--text-muted);
-		font-size: 0.925rem;
+		font-size: var(--font-ui);
 		max-width: var(--measure);
 	}
 
 	.draft {
-		margin-left: 0.5rem;
+		margin-left: var(--space-2);
 		padding: 0.1em 0.45em;
-		font-size: 0.7rem;
-		font-weight: 500;
+		font-size: var(--font-meta);
+		font-weight: var(--weight-medium);
 		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		color: var(--accent);
 		background: var(--accent-soft);
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 		vertical-align: middle;
 	}
 

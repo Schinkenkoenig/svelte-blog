@@ -1,0 +1,154 @@
+/* Design tokens. The only file where a raw value is allowed to appear.
+ *
+ * Two layers, and the separation is the whole point:
+ *
+ *   1. PRIMITIVES -- the raw palette and scales. Named for what they *are*
+ *      (`--blue-500`, `--space-4`). They never appear outside this file.
+ *   2. SEMANTIC   -- named for what they are *for* (`--bg`, `--text-muted`,
+ *      `--gap-section`). Components only ever use these.
+ *
+ * Retheming is therefore a change to layer 2: point the semantic names at
+ * different primitives and nothing else moves. Changing the palette itself is a
+ * change to layer 1 and every semantic name follows automatically. Neither
+ * requires touching a component, which is the property that keeps the two
+ * themes from drifting apart.
+ *
+ * Colours are in oklch: lightness is perceptual, so a ramp built by stepping L
+ * is evenly spaced to the eye, and holding C and H constant across a ramp keeps
+ * the hue honest. The neutrals carry H 255 -- the same hue as the accent -- at
+ * very low chroma, which is what makes the greys read as blue-tinted rather
+ * than dead, and makes the accent belong to the family instead of sitting on
+ * top of it.
+ */
+
+:root {
+	/* --- Layer 1: primitives ------------------------------------------- */
+
+	/* Neutral ramp. Blue-leaning: every step sits at H 264, the accent's own hue,
+	 * with chroma low enough to read as grey and high enough to be felt. Values
+	 * were derived from the hex colours the design was settled at, then smoothed,
+	 * rather than picked in oklch and hoped for.
+	 *
+	 * The steps are not evenly spaced. The dark end is where a blog actually
+	 * lives -- background, two surfaces above it, two borders -- so it gets more
+	 * resolution than the middle, which nothing uses. */
+	--neutral-0: oklch(100% 0 0);
+	--neutral-25: oklch(98.5% 0.003 264);
+	--neutral-50: oklch(96.5% 0.005 264);
+	--neutral-100: oklch(94.5% 0.006 264);
+	--neutral-150: oklch(91.4% 0.01 264);
+	--neutral-200: oklch(88.5% 0.011 264);
+	--neutral-300: oklch(78.3% 0.02 264);
+	--neutral-400: oklch(67.1% 0.029 264);
+	--neutral-500: oklch(53.2% 0.033 264);
+	--neutral-600: oklch(39.6% 0.034 264);
+	--neutral-700: oklch(32.6% 0.034 264);
+	--neutral-800: oklch(26.9% 0.028 264);
+	--neutral-850: oklch(22.2% 0.023 264);
+	--neutral-900: oklch(19.7% 0.021 264);
+	--neutral-950: oklch(16.3% 0.014 264);
+
+	/* Accent ramp, same hue family as the neutrals. */
+	--blue-300: oklch(80.9% 0.095 264);
+	--blue-400: oklch(71.9% 0.132 264);
+	--blue-500: oklch(63.8% 0.154 264);
+	--blue-600: oklch(52.4% 0.194 264);
+	--blue-700: oklch(44.3% 0.18 264);
+
+	/* Type scale. Fluid between a 360px and a 1100px viewport, so there is one
+	 * scale rather than a set of breakpoint overrides. Ratio ~1.2. */
+	--text-xs: clamp(0.75rem, 0.73rem + 0.1vw, 0.8rem);
+	--text-sm: clamp(0.85rem, 0.83rem + 0.12vw, 0.925rem);
+	--text-base: clamp(1rem, 0.97rem + 0.15vw, 1.075rem);
+	--text-lg: clamp(1.1rem, 1.05rem + 0.25vw, 1.25rem);
+	--text-xl: clamp(1.3rem, 1.2rem + 0.45vw, 1.6rem);
+	--text-2xl: clamp(1.6rem, 1.4rem + 0.85vw, 2.15rem);
+
+	/* Spacing scale, powers of roughly 1.5 off a 0.25rem base. */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.5rem;
+	--space-6: 2rem;
+	--space-7: 3rem;
+	--space-8: 4rem;
+	--space-9: 6rem;
+
+	/* Everything else. */
+	--weight-normal: 400;
+	--weight-medium: 500;
+	--weight-semibold: 620;
+	--radius-sm: 4px;
+	--radius-md: 8px;
+	--radius-full: 999px;
+	--duration-fast: 120ms;
+	--easing: ease;
+
+	--family-sans:
+		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
+	--family-mono: ui-monospace, 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+	/* --- Layer 2: semantic, dark (the default) --------------------------- */
+
+	color-scheme: dark;
+
+	--bg: var(--neutral-950);
+	--bg-subtle: var(--neutral-900);
+	--bg-inset: var(--neutral-850);
+	--border: var(--neutral-800);
+	--border-strong: var(--neutral-700);
+
+	--text: var(--neutral-150);
+	--text-muted: var(--neutral-400);
+	--text-faint: var(--neutral-500);
+
+	--accent: var(--blue-400);
+	--accent-hover: var(--blue-300);
+	/* Tinted surfaces are mixed from the accent rather than being their own
+	 * primitive, so they track a palette change for free. */
+	--accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+	--selection: color-mix(in oklch, var(--accent) 30%, transparent);
+
+	/* Semantic type roles. A component asks for "body" or "title", never a size. */
+	--font-body: var(--text-base);
+	--font-meta: var(--text-xs);
+	--font-ui: var(--text-sm);
+	--font-title: var(--text-2xl);
+	--font-heading: var(--text-xl);
+	--font-subheading: var(--text-lg);
+
+	--leading-tight: 1.25;
+	--leading-normal: 1.65;
+
+	/* Layout roles. */
+	--gap-inline: var(--space-3);
+	--gap-block: var(--space-4);
+	--gap-section: var(--space-7);
+	--gutter: var(--space-5);
+	--measure: 68ch;
+	--page: 44rem;
+
+	--transition: var(--duration-fast) var(--easing);
+}
+
+/* Light is a remap of layer 2 only. No primitive is redefined, and no component
+ * knows this theme exists. */
+:root[data-theme='light'] {
+	color-scheme: light;
+
+	--bg: var(--neutral-0);
+	--bg-subtle: var(--neutral-25);
+	--bg-inset: var(--neutral-50);
+	--border: var(--neutral-100);
+	--border-strong: var(--neutral-200);
+
+	--text: var(--neutral-900);
+	--text-muted: var(--neutral-500);
+	--text-faint: var(--neutral-400);
+
+	--accent: var(--blue-600);
+	--accent-hover: var(--blue-700);
+	--accent-soft: color-mix(in oklch, var(--accent) 9%, transparent);
+	--selection: color-mix(in oklch, var(--accent) 20%, transparent);
+}

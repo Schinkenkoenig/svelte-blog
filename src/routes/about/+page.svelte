@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { site } from '$lib/config';
 </script>
 
@@ -17,14 +17,15 @@
 	</p>
 	<p>This is where the notes end up. Mostly for me; you are welcome to read along.</p>
 	<p>
-		Find me on <a href="https://github.com/Schinkenkoenig">GitHub</a>, or subscribe via
-		<a href="{base}/rss.xml">RSS</a>.
+		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+		Find me on <a href={site.links[0].href}>GitHub</a>, or subscribe via
+		<a href={resolve('/rss.xml')}>RSS</a>.
 	</p>
 </div>
 
 <style>
 	h1 {
-		font-size: 1.9rem;
-		margin-bottom: 2rem;
+		font-size: var(--font-title);
+		margin-bottom: var(--space-6);
 	}
 </style>

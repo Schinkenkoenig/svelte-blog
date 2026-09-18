@@ -1,6 +1,6 @@
 <!-- The frame every page sits in: header, content column, footer. -->
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import { site } from '$lib/config';
@@ -10,9 +10,13 @@
 
 	// A nav item is current when the path is the item itself or lives under it.
 	// The home link is exact, or it would light up on every page.
-	function isCurrent(href: string): boolean {
-		const path = page.url.pathname.replace(base, '') || '/';
-		return href === '/' ? path === '/' : path.startsWith(href);
+	//
+	// Both sides go through resolve(), so the comparison happens on real URLs and
+	// the base path cannot make it silently wrong.
+	function isCurrent(href: (typeof site.nav)[number]['href']): boolean {
+		const target = resolve(href);
+		const path = page.url.pathname;
+		return href === '/' ? path === target : path.startsWith(target);
 	}
 </script>
 
@@ -20,10 +24,10 @@
 
 <header>
 	<div class="page bar">
-		<a class="brand" href="{base}/">{site.title}</a>
+		<a class="brand" href={resolve('/')}>{site.title}</a>
 		<nav>
 			{#each site.nav as item (item.href)}
-				<a href="{base}{item.href}" aria-current={isCurrent(item.href) ? 'page' : undefined}>
+				<a href={resolve(item.href)} aria-current={isCurrent(item.href) ? 'page' : undefined}>
 					{item.label}
 				</a>
 			{/each}
@@ -41,9 +45,12 @@
 		<span>&copy; {new Date().getFullYear()} {site.author}</span>
 		<nav>
 			{#each site.links as link (link.href)}
+				<!-- Off-site URLs from config: resolve() is for this app's own routes,
+					and there is nothing here for it to resolve. -->
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a href={link.href} rel="me noreferrer">{link.label}</a>
 			{/each}
-			<a href="{base}/rss.xml">RSS</a>
+			<a href={resolve('/rss.xml')}>RSS</a>
 		</nav>
 	</div>
 </footer>
@@ -55,13 +62,13 @@
 	}
 
 	.skip:focus {
-		left: 1rem;
-		top: 1rem;
+		left: var(--space-4);
+		top: var(--space-4);
 		z-index: 10;
-		padding: 0.5rem 0.75rem;
+		padding: var(--space-2) var(--space-3);
 		background: var(--bg-subtle);
 		border: 1px solid var(--border-strong);
-		border-radius: var(--radius);
+		border-radius: var(--radius-md);
 	}
 
 	header {
@@ -77,12 +84,12 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
-		min-height: 3.5rem;
+		gap: var(--gap-block);
+		min-height: var(--space-7);
 	}
 
 	.brand {
-		font-weight: 620;
+		font-weight: var(--weight-semibold);
 		letter-spacing: -0.02em;
 		color: var(--text);
 	}
@@ -94,8 +101,8 @@
 	nav {
 		display: flex;
 		align-items: center;
-		gap: 1.1rem;
-		font-size: 0.925rem;
+		gap: var(--gap-inline);
+		font-size: var(--font-ui);
 	}
 
 	nav a {
@@ -116,17 +123,17 @@
 
 	main {
 		display: block;
-		padding-block: 3rem 5rem;
+		padding-block: var(--gap-section) var(--space-9);
 		min-height: 60vh;
 	}
 
 	footer {
 		border-top: 1px solid var(--border);
 		color: var(--text-faint);
-		font-size: 0.875rem;
+		font-size: var(--font-ui);
 	}
 
 	footer .bar {
-		min-height: 4rem;
+		min-height: var(--space-8);
 	}
 </style>

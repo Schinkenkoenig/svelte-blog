@@ -1,0 +1,10 @@
+# Toolchain for this repository, pinned so local and CI agree.
+#
+# The versions here, the `packageManager` field in package.json and the Node
+# version in .node-version are the same numbers in three places because three
+# different things read them: mise locally, corepack/pnpm on install, and
+# actions/setup-node in CI. Change one, change all three.
+
+[tools]
+node = "26.9.0"
+pnpm = "12.4.2"

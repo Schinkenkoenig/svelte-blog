@@ -5,7 +5,7 @@
 
 import { error } from '@sveltejs/kit';
 import type { Component } from 'svelte';
-import { findPost, listPosts } from '$lib/posts';
+import { findPost, listPosts } from '$lib/content';
 
 const bodies = import.meta.glob<{ default: Component }>('/src/content/posts/*.md');
 

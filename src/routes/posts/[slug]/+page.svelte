@@ -1,6 +1,6 @@
 <!-- A single post: title block, then the rendered markdown. -->
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { resolve } from '$app/paths';
 	import { site } from '$lib/config';
 	import { formatDate } from '$lib/posts';
 
@@ -36,49 +36,49 @@
 </article>
 
 <nav class="back">
-	<a href="{base}/">&larr; All writing</a>
+	<a href={resolve('/')}>&larr; All writing</a>
 </nav>
 
 <style>
 	header {
-		margin-bottom: 2.75rem;
-		padding-bottom: 1.75rem;
+		margin-bottom: var(--space-6);
+		padding-bottom: var(--space-5);
 		border-bottom: 1px solid var(--border);
 	}
 
 	time {
-		font-size: 0.8rem;
+		font-size: var(--font-meta);
 		font-variant-numeric: tabular-nums;
 		color: var(--text-faint);
 		letter-spacing: 0.02em;
 	}
 
 	h1 {
-		font-size: 1.9rem;
-		margin-top: 0.4rem;
+		font-size: var(--font-title);
+		margin-top: var(--space-2);
 	}
 
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.4rem;
+		gap: var(--space-2);
 		list-style: none;
-		margin: 1rem 0 0;
+		margin: var(--space-4) 0 0;
 		padding: 0;
 	}
 
 	.tags li {
-		font-size: 0.75rem;
+		font-size: var(--font-meta);
 		color: var(--text-muted);
 		padding: 0.15em 0.55em;
 		border: 1px solid var(--border);
-		border-radius: 999px;
+		border-radius: var(--radius-full);
 	}
 
 	.back {
-		margin-top: 4rem;
-		padding-top: 1.75rem;
+		margin-top: var(--space-8);
+		padding-top: var(--space-5);
 		border-top: 1px solid var(--border);
-		font-size: 0.925rem;
+		font-size: var(--font-ui);
 	}
 </style>

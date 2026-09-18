@@ -1,9 +1,9 @@
-// The post index.
+// What a post is, and every operation on a list of them.
 //
-// Posts are markdown files under src/content/posts. Vite's `import.meta.glob`
-// resolves that pattern at build time, so the index is assembled during the
-// build and shipped as data -- there is no filesystem read at runtime, which is
-// what lets the whole site prerender.
+// Deliberately pure: no imports, no glob, no Vite. `content.ts` is what binds
+// these functions to the actual markdown files. The split is what lets the unit
+// tests run in milliseconds without a build -- importing this file cannot drag
+// in a single .md.
 //
 // The slug is the filename. It is not stored in the frontmatter because two
 // sources of truth for a URL is one too many.
@@ -12,14 +12,14 @@ export type PostMeta = {
 	slug: string;
 	title: string;
 	description: string;
-	/** ISO date (YYYY-MM-DD) from the frontmatter. */
+	/** ISO calendar day (YYYY-MM-DD). */
 	date: string;
 	tags: string[];
 	draft: boolean;
 };
 
 /** The frontmatter a post file is expected to declare. */
-type Frontmatter = {
+export type Frontmatter = {
 	title?: string;
 	description?: string;
 	/** YAML parses an unquoted `2026-09-18` into a Date, so both shapes arrive here. */
@@ -28,62 +28,52 @@ type Frontmatter = {
 	draft?: boolean;
 };
 
-const files = import.meta.glob<{ metadata: Frontmatter }>('/src/content/posts/*.md', {
-	eager: true
-});
-
-function slug_of(path: string): string {
+/** `src/content/posts/hello.md` -> `hello`. */
+export function slugOf(path: string): string {
 	return path.split('/').pop()!.replace(/\.md$/, '');
 }
 
-// A post missing a title or date is a mistake, and a build is the right place to
-// find out. Silently rendering "undefined" would hide it until it was published.
-function to_meta(path: string, metadata: Frontmatter): PostMeta {
-	const slug = slug_of(path);
+// A post is dated, not timestamped. Anything below day resolution is dropped
+// rather than carried around as a timezone bug waiting to happen.
+function toCalendarDay(date: string | Date): string {
+	return date instanceof Date ? date.toISOString().slice(0, 10) : String(date).slice(0, 10);
+}
 
-	if (!metadata.title) throw new Error(`${path}: frontmatter is missing "title"`);
-	if (!metadata.date) throw new Error(`${path}: frontmatter is missing "date"`);
+/**
+ * Validates one post's frontmatter and normalises it into a `PostMeta`.
+ *
+ * Throws rather than falling back: a post missing a title is a mistake, and the
+ * build is the right place to find out. Rendering "undefined" into a page would
+ * hide it until it was published.
+ */
+export function parsePost(path: string, frontmatter: Frontmatter): PostMeta {
+	if (!frontmatter.title) throw new Error(`${path}: frontmatter is missing "title"`);
+	if (!frontmatter.date) throw new Error(`${path}: frontmatter is missing "date"`);
 
-	// Normalise both shapes to a plain calendar day. A post is dated, not
-	// timestamped, so anything below day resolution is dropped rather than
-	// carried around as a timezone bug waiting to happen.
-	const date =
-		metadata.date instanceof Date
-			? metadata.date.toISOString().slice(0, 10)
-			: String(metadata.date).slice(0, 10);
-
+	const date = toCalendarDay(frontmatter.date);
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-		throw new Error(`${path}: "date" must be YYYY-MM-DD, got "${String(metadata.date)}"`);
+		throw new Error(`${path}: "date" must be YYYY-MM-DD, got "${String(frontmatter.date)}"`);
 	}
 
 	return {
-		slug,
-		title: metadata.title,
-		description: metadata.description ?? '',
+		slug: slugOf(path),
+		title: frontmatter.title,
+		description: frontmatter.description ?? '',
 		date,
-		tags: metadata.tags ?? [],
-		draft: metadata.draft ?? false
+		tags: frontmatter.tags ?? [],
+		draft: frontmatter.draft ?? false
 	};
 }
 
-// Drafts are visible while writing and absent from the build, so an unfinished
-// post can live on the branch without a separate staging deploy.
-const all = Object.entries(files)
-	.map(([path, module]) => to_meta(path, module.metadata))
-	.filter((post) => import.meta.env.DEV || !post.draft)
-	.sort((a, b) => b.date.localeCompare(a.date));
-
-export function listPosts(): PostMeta[] {
-	return all;
+/** Newest first. Ties break on slug so the order is stable across builds. */
+export function sortPosts(posts: PostMeta[]): PostMeta[] {
+	return [...posts].sort((a, b) => b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
 }
 
-export function findPost(slug: string): PostMeta | undefined {
-	return all.find((post) => post.slug === slug);
-}
-
-export function listTags(): { tag: string; count: number }[] {
+/** Tags with their use counts, most used first, then alphabetical. */
+export function countTags(posts: PostMeta[]): { tag: string; count: number }[] {
 	const counts = new Map<string, number>();
-	for (const post of all) {
+	for (const post of posts) {
 		for (const tag of post.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
 	}
 	return [...counts]
@@ -91,7 +81,7 @@ export function listTags(): { tag: string; count: number }[] {
 		.sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 
-/** Renders an ISO date the way the site displays it. */
+/** Renders an ISO calendar day the way the site displays it. */
 export function formatDate(iso: string, lang = 'en'): string {
 	return new Date(`${iso}T00:00:00Z`).toLocaleDateString(lang, {
 		year: 'numeric',

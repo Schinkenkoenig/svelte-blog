@@ -1,0 +1,9 @@
+build
+.svelte-kit
+node_modules
+pnpm-lock.yaml
+
+# Posts are prose. How a sentence is wrapped is the author's decision, not the
+# formatter's, and reflowing one turns a one-word edit into a paragraph-sized
+# diff.
+src/content

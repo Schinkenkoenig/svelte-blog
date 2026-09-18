@@ -1,10 +1,12 @@
 # The only path to production.
 #
-# A push to main builds the site and publishes it to GitHub Pages. Nothing is
-# deployed by hand, so what is live is always exactly what is on main.
+# A push to main verifies and publishes. Pull requests run the identical
+# verification without deploying, which is what makes a broken post or a type
+# error a review-time problem instead of a live one.
 #
-# Pull requests run the same build without deploying, which is what makes a
-# broken post or a type error a review-time problem instead of a live one.
+# The verify job runs the same sequence as `pnpm verify` locally, in the same
+# order, so "it passed on my machine" means something. Cheapest checks first: a
+# formatting slip should not wait on a type check to be reported.
 
 name: deploy
 
@@ -16,7 +18,7 @@ on:
 
 # The site is served from https://<user>.github.io/<repo>, so every absolute
 # path needs that prefix baked in at build time. Drop this once a custom domain
-# puts the site at the root.
+# puts the site at the root (see issue #13).
 env:
   BASE_PATH: /${{ github.event.repository.name }}
 
@@ -28,23 +30,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
+      # Reads the version from package.json's `packageManager` field, so the
+      # runner and mise.toml cannot drift apart.
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
-          cache: npm
+          node-version-file: .node-version
+          cache: pnpm
 
-      - run: npm ci
+      # --frozen-lockfile: CI installs exactly what the lockfile says, and fails
+      # if package.json and the lockfile disagree, rather than quietly resolving
+      # something new.
+      - run: pnpm install --frozen-lockfile
 
-      # svelte-check runs before the build: a type error in a route should stop
-      # the pipeline, not ship as a broken page.
-      - run: npm run check
-
-      - run: npm run build
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm build
 
       - name: Upload artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -53,7 +62,7 @@ jobs:
           path: build
 
   deploy:
-    needs: build
+    needs: verify
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:

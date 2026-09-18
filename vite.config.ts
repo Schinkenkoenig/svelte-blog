@@ -4,11 +4,32 @@
 
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
+import browserslist from 'browserslist';
+import { browserslistToTargets } from 'lightningcss';
 import { mdsvex } from 'mdsvex';
 import { defineConfig } from 'vite';
 import mdsvexConfig from './mdsvex.config.js';
 
+// The browser targets come from the `browserslist` field in package.json, so
+// there is one answer to "which browsers" that both Vite and Lightning CSS read.
+const targets = browserslistToTargets(browserslist());
+
 export default defineConfig({
+	css: {
+		// Lightning CSS instead of PostCSS: it is a Rust parser, it minifies
+		// better, and -- the actual reason it is here -- it downlevels modern
+		// colour syntax. tokens.css is written in oklch with color-mix(), and
+		// this is what emits fallbacks for anything in `browserslist` that cannot
+		// read them, so the palette can be authored in the good syntax without
+		// betting the site on it.
+		transformer: 'lightningcss',
+		lightningcss: { targets }
+	},
+
+	build: {
+		cssMinify: 'lightningcss'
+	},
+
 	plugins: [
 		sveltekit({
 			compilerOptions: {
